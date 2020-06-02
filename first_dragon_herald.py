@@ -1,13 +1,5 @@
 from common.data_structure import GameCount, BaseParser, GameData
 from common.db import data_over_diamond
-from pymongo import MongoClient
-from typing import Dict
-
-client = MongoClient('localhost', 27017)
-collection = client['rank_game']['v10_10']
-
-high_elo = ["DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGER"]
-high_data = collection.find({"tier": {"$in": high_elo}})
 
 
 class FirstDragonHerald(BaseParser):
@@ -16,6 +8,9 @@ class FirstDragonHerald(BaseParser):
 		self.firstDragonCount = GameCount()
 		self.firstHeraldCount = GameCount()
 		self.firstBothCount = GameCount()
+		self.firstDragonTypeCountDict = dict()
+		for dragon_type in GameData.DRAGON_TYPES:
+			self.firstDragonTypeCountDict[dragon_type] = GameCount()
 
 	def parse(self, game_data: GameData):
 		if not game_data.is_monster_log_valid:
@@ -30,6 +25,7 @@ class FirstDragonHerald(BaseParser):
 			time = log.timestamp // 60000
 			if first_dragon is None and monster_type in GameData.DRAGON_TYPES:
 				self.firstDragonCount.update(is_winner, time)
+				self.firstDragonTypeCountDict[monster_type].update(is_winner, time)
 				first_dragon = is_winner
 			elif first_herald is None and monster_type == GameData.RIFT_HERALD:
 				self.firstHeraldCount.update(is_winner, time)
@@ -41,13 +37,20 @@ class FirstDragonHerald(BaseParser):
 			self.firstBothCount.update(first_dragon)
 
 	def __str__(self):
-		return "First Dragon WinRate: %s\n" % self.firstDragonCount + \
-				"First Herald WinRate: %s\n" % self.firstHeraldCount + \
-				"First Dragon & Herald WinRate: %s\n" % self.firstBothCount
+		s = ""
+		s += "FIRST_DRAGON: %s\n" % self.firstDragonCount
+		s += "FIRST_RIFT_HERALD: %s\n" % self.firstHeraldCount
+		s += "FIRST_DRAGON_AND_RIFT_HERALD: % s\n" % self.firstBothCount
+		for dragon_type in GameData.DRAGON_TYPES:
+			s += "FIRST_%s: %s\n" % (dragon_type, self.firstDragonTypeCountDict[dragon_type])
+		return s
 
 	def plot(self):
-		self.firstDragonCount.plot('First Dragon')
-		self.firstHeraldCount.plot('First Rift Herald')
+		self.firstDragonCount.plot('FIRST_DRAGON')
+		self.firstHeraldCount.plot('FIRST_RIFT_HERALD')
+		self.firstBothCount.plot('FIRST_DRAGON_AND_RIFT_HERALD')
+		for dragon_type in GameData.DRAGON_TYPES:
+			self.firstDragonTypeCountDict[dragon_type].plot("FIRST_%s" % dragon_type)
 
 
 if __name__ == '__main__':
