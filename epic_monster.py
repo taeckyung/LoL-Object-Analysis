@@ -14,7 +14,7 @@ class EpicMonster(BaseParser):
 			self.elementDragonCountDict[dragon_type] = GameCount()
 
 	def parse(self, game_data: GameData):
-		if not game_data.is_monster_log_valid:
+		if not game_data.is_monster_log_valid():
 			return
 
 		riftherald_count = [0, 0]
@@ -36,26 +36,26 @@ class EpicMonster(BaseParser):
 			if monster_type in GameData.DRAGON_TYPES:
 				total_dragon_count[is_winner] += 1
 				if is_winner and total_dragon_count[True] == 4:
-					self.elementDragonCountDict[monster_type].update(True, time)
+					self.elementDragonCountDict[monster_type].insert(True, time)
 				elif (not is_winner) and total_dragon_count[False] == 4:
-					self.elementDragonCountDict[monster_type].update(False, time)
+					self.elementDragonCountDict[monster_type].insert(False, time)
 			elif monster_type == GameData.RIFT_HERALD:
 				riftherald_count[is_winner] += 1
-				self.riftheraldCountList[riftherald_count[is_winner]].update(is_winner, time)
+				self.riftheraldCountList[riftherald_count[is_winner]].insert(is_winner, time)
 			elif monster_type == GameData.ELDER_DRAGON:
 				elder_dragon_count[is_winner] += 1
-				self.elderDragonCountList[elder_dragon_count[is_winner]].update(is_winner, time)
+				self.elderDragonCountList[elder_dragon_count[is_winner]].insert(is_winner, time)
 			elif monster_type == GameData.BARON_NASHOR:
 				baron_count[is_winner] += 1
-				self.baronCountList[baron_count[is_winner]].update(is_winner, time)
+				self.baronCountList[baron_count[is_winner]].insert(is_winner, time)
 
 		for is_winner in [False, True]:
 			if riftherald_count[is_winner] == 0 and riftherald_count[not is_winner] != 0:
-				self.riftheraldCountList[0].update(is_winner)
+				self.riftheraldCountList[0].insert(is_winner)
 			if baron_count[is_winner] == 0 and baron_count[not is_winner] != 0:
-				self.baronCountList[0].update(is_winner)
+				self.baronCountList[0].insert(is_winner)
 			if elder_dragon_count[is_winner] == 0 and elder_dragon_count[not is_winner] != 0:
-				self.elderDragonCountList[0].update(is_winner)
+				self.elderDragonCountList[0].insert(is_winner)
 
 	def __str__(self):
 		s = ""

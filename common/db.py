@@ -1,7 +1,7 @@
 from .data_structure import GameData
-from pymongo import MongoClient
-from typing import Generator
+from typing import Generator, List
 from bson.objectid import ObjectId
+from pymongo import MongoClient
 
 client = MongoClient('localhost', 27017)
 collection = client['rank_game']['v10_10']
@@ -9,14 +9,31 @@ collection = client['rank_game']['v10_10']
 elo = ["IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGER"]
 
 
+def data_by_id(id_list: List[str]) -> Generator[GameData, None, None]:
+	"""
+	Wrapper function to supply data by own id.
+	:return:
+	"""
+	target = collection.find({"_id": {"$in": [ObjectId[id_] for id_ in id_list]}})
+	for data in target:
+		yield GameData(data)
+
+
 def data_over_diamond() -> Generator[GameData, None, None]:
+	"""
+	Wrapper function to supply data from over Diamond tier.
+	:return:
+	"""
 	target = collection.find({"tier": {"$in": elo[-4:]}, "game_duration": {"$gte": 1200}})
-	# target = collection.find({"_id": ObjectId('5ec3b60fc2e2b3e578aeea31')})
 	for data in target:
 		yield GameData(data)
 
 
 def data_over_platinum() -> Generator[GameData, None, None]:
+	"""
+	Wrapper function to supply data from over Platinum tier.
+	:return:
+	"""
 	target = collection.find({"tier": {"$in": elo[4:]}, "game_duration": {"$gte": 1200}})
 	for data in target:
 		yield GameData(data)

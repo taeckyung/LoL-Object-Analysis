@@ -33,7 +33,7 @@ class DragonXHerald(BaseParser):
 					# Herald killer_id is 0 if killed by Baron Nashor
 					if (abs(dragon_time - herald_time) <= self.padding) and \
 						not game_data.is_same_side(dragon.killer_id, herald.killer_id):
-						self.dragonCountDict[dragon.monster_type].update(game_data.is_id_winner(dragon.killer_id), dragon_time)
+						self.dragonCountDict[dragon.monster_type].insert(game_data.is_id_winner(dragon.killer_id), dragon_time)
 
 	def plot(self):
 		for dragon_type in GameData.DRAGON_TYPES:
@@ -57,7 +57,7 @@ class BaronXElderOrElement(BaseParser):
 			self.elementCount[dragon_type] = GameCount()
 
 	def parse(self, game_data: GameData):
-		if not game_data.is_monster_log_valid:
+		if not game_data.is_monster_log_valid():
 			return
 
 		elders = []
@@ -84,13 +84,13 @@ class BaronXElderOrElement(BaseParser):
 					element_time = element.timestamp / 60000
 					if (abs(nashor_time - element_time) < self.padding) and \
 						not game_data.is_same_side(nashor.killer_id, element.killer_id):
-						self.elementCount[element.monster_type].update(game_data.is_id_winner(nashor.killer_id), nashor_time)
+						self.elementCount[element.monster_type].insert(game_data.is_id_winner(nashor.killer_id), nashor_time)
 
 				for elder in elders:
 					elder_time = elder.timestamp / 60000
 					if (abs(nashor_time - elder_time) < self.padding) and \
 						not game_data.is_same_side(nashor.killer_id, elder.killer_id):
-						self.elderCount.update(game_data.is_id_winner(nashor.killer_id), nashor_time)
+						self.elderCount.insert(game_data.is_id_winner(nashor.killer_id), nashor_time)
 
 	def plot(self):
 		for dragon_type in GameData.DRAGON_TYPES:
@@ -116,4 +116,3 @@ if __name__ == '__main__':
 		baronXElderOrElement.parse(data)
 	baronXElderOrElement.plot()
 	print(baronXElderOrElement)
-

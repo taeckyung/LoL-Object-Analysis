@@ -9,7 +9,7 @@ class ElderAfterElement(BaseParser):
 		self.elderAndElementCount = GameCount()
 
 	def parse(self, game_data: GameData):
-		if not game_data.is_monster_log_valid:
+		if not game_data.is_monster_log_valid():
 			return
 
 		dragons_count = [0, 0]
@@ -27,9 +27,9 @@ class ElderAfterElement(BaseParser):
 
 		if element is not None and elder is not None:
 			if not game_data.is_same_side(element.killer_id, elder.killer_id):
-				self.elderNoElementCount.update(game_data.is_id_winner(elder.killer_id), elder.timestamp / 60000)
+				self.elderNoElementCount.insert(game_data.is_id_winner(elder.killer_id), elder.timestamp / 60000)
 			else:
-				self.elderAndElementCount.update(game_data.is_id_winner(elder.killer_id), elder.timestamp / 60000)
+				self.elderAndElementCount.insert(game_data.is_id_winner(elder.killer_id), elder.timestamp / 60000)
 
 	def __str__(self):
 		s = ""
@@ -48,5 +48,3 @@ if __name__ == '__main__':
 		elderAfterElement.parse(data)
 	elderAfterElement.plot()
 	print(elderAfterElement)
-
-

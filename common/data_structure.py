@@ -7,12 +7,22 @@ import csv
 
 class GameCount:
 	def __init__(self, interval=1):
+		"""
+		GameCount class to record data with win|lose information (and time as optional).
+		:param interval: Interval for time histogram.
+		"""
 		self.max_minute = 60
 		self.count = [0, 0]
 		self.hist = [np.zeros(self.max_minute // interval + 1) for _ in range(2)]
 		self.interval = interval
 
-	def update(self, win: bool, minute: Union[int, float, None] = None):
+	def insert(self, win: bool, minute: Union[int, float, None] = None):
+		"""
+		Insert new data.
+		:param win: Boolean value.
+		:param minute: Minute in number (optional).
+		:return:
+		"""
 		if minute is not None:
 			minute = min(int(minute), self.max_minute)
 			self.hist[win][minute // self.interval] += 1
@@ -27,13 +37,17 @@ class GameCount:
 		return self.count[True] / self.total()
 
 	def score(self) -> float:
+		"""
+		Score to measure time-dependent influence on win rate.
+		:return: Score value.
+		"""
 		if self.total() == 0:
 			return 0
 		diff = [(self.hist[True][i] - self.hist[False][i]) / self.total() for i in range(0, self.max_minute + 1, self.interval)]
 		return 100.0 * np.trapz(diff, dx=self.interval)
 
 	def __str__(self):
-		return "%.3f%% (%d / %d)" % (100*self.win_rate(), self.count[True], self.total())
+		return "%.3f%% (%d / %d); %.1f" % (100*self.win_rate(), self.count[True], self.total(), self.score())
 
 	def to_csv(self, file_name: str):
 		with open(file_name, 'w', encoding='utf-8', newline='') as csv_file:
@@ -54,6 +68,10 @@ class GameCount:
 
 class BaseStructure:
 	def __init__(self, data: Dict):
+		"""
+		Base data structure to store dictionary data as a class.
+		:param data: Raw dictionary from database.
+		"""
 		self.data = data
 
 	def __str__(self):
@@ -177,15 +195,29 @@ class GameData(GameDataStructure):
 	ELDER_DRAGON = 'ELDER_DRAGON'
 
 	def __init__(self, data: Dict):
+		"""
+		Wrapper data structure for rank game data.
+		Provides additional helper functions.
+		:param data: Raw dictionary from database.
+		"""
 		super().__init__(data)
-		self.is_monster_log_valid = True
+		self._is_monster_log_valid = True
 		self.killer_id_zero_side = None
 		self.parse_monster_log()
 
 	def winner_side(self) -> str:
+		"""
+		Return the winner side of the current rank game.
+		:return: 'blue' | 'red'
+		"""
 		return 'blue' if self.teams.win.side == 'blue' else 'red'
 
 	def get_side(self, user_id: int) -> str:
+		"""
+		Get side from user id.
+		:param user_id: User id. Should be in the range from 1 to 10.
+		:return: 'blue' | 'red'
+		"""
 		assert(user_id in range(1, 11))
 		if user_id < 6:
 			return 'blue'
@@ -193,17 +225,42 @@ class GameData(GameDataStructure):
 			return 'red'
 
 	def is_same_side(self, id1: int, id2: int) -> bool:
+		"""
+		Check if two user id is from same side.
+		:param id1: User id. Zero can be accepted.
+		:param id2: User id. Zero can be accepted.
+		:return: True | False
+		"""
 		assert(id1 in range(0, 11) and id2 in range(0, 11))
 		side1 = self.get_side(id1) if id1 != 0 else self.killer_id_zero_side
 		side2 = self.get_side(id2) if id2 != 0 else self.killer_id_zero_side
 		return side1 == side2
 
 	def is_id_winner(self, user_id: int) -> bool:
+		"""
+		Check if user id is in the winner side.
+		:param user_id: User id. Zero can be accepted.
+		:return: True | False
+		"""
 		assert(user_id in range(0, 11))
 		side = self.get_side(user_id) if user_id != 0 else self.killer_id_zero_side
 		return side == self.winner_side()
 
+	def is_monster_log_valid(self):
+		"""
+		Function to check if data contains unprocessable killer_id = 0.
+		About 20% of data consists of one killer_id = 0,
+		and a few data consists of two (or maybe more) killer_id = 0.
+		For simplicity, we only accept data consists of up to one killer_id = 0.
+		:return:
+		"""
+		return self._is_monster_log_valid
+
 	def parse_monster_log(self):
+		"""
+		Function to handle monster logs with killer_id = 0.
+		:return:
+		"""
 		invalid = []
 		for log in self.monster_logs:
 			if log.killer_id == 0:
@@ -218,11 +275,14 @@ class GameData(GameDataStructure):
 					kills[self.is_id_winner(log.killer_id)] -= 1
 			self.killer_id_zero_side = kills[0] == 0
 		else:
-			self.is_monster_log_valid = False
+			self._is_monster_log_valid = False
 
 
 class BaseParser:
 	def __init__(self):
+		"""
+		Base parser class for analyzing the data.
+		"""
 		pass
 
 	def parse(self, data: GameData):

@@ -13,7 +13,7 @@ class FirstDragonHerald(BaseParser):
 			self.firstDragonTypeCountDict[dragon_type] = GameCount()
 
 	def parse(self, game_data: GameData):
-		if not game_data.is_monster_log_valid:
+		if not game_data.is_monster_log_valid():
 			return
 
 		first_dragon = None
@@ -24,17 +24,17 @@ class FirstDragonHerald(BaseParser):
 			is_winner = game_data.is_id_winner(log.killer_id)
 			time = log.timestamp // 60000
 			if first_dragon is None and monster_type in GameData.DRAGON_TYPES:
-				self.firstDragonCount.update(is_winner, time)
-				self.firstDragonTypeCountDict[monster_type].update(is_winner, time)
+				self.firstDragonCount.insert(is_winner, time)
+				self.firstDragonTypeCountDict[monster_type].insert(is_winner, time)
 				first_dragon = is_winner
 			elif first_herald is None and monster_type == GameData.RIFT_HERALD:
-				self.firstHeraldCount.update(is_winner, time)
+				self.firstHeraldCount.insert(is_winner, time)
 				first_herald = is_winner
 			if first_dragon is not None and first_herald is not None:
 				break
 
 		if first_herald == first_dragon:
-			self.firstBothCount.update(first_dragon)
+			self.firstBothCount.insert(first_dragon)
 
 	def __str__(self):
 		s = ""
