@@ -57,9 +57,6 @@ class BaronXElderOrElement(BaseParser):
 			self.elementCount[dragon_type] = GameCount()
 
 	def parse(self, game_data: GameData):
-		if not game_data.is_monster_log_valid():
-			return
-
 		elders = []
 		nashors = []
 		dragons_count = [0, 0]

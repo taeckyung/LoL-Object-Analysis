@@ -9,9 +9,6 @@ class ElderAfterElement(BaseParser):
 		self.elderAndElementCount = GameCount()
 
 	def parse(self, game_data: GameData):
-		if not game_data.is_monster_log_valid():
-			return
-
 		dragons_count = [0, 0]
 		element = None
 		elder = None

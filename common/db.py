@@ -19,21 +19,25 @@ def data_by_id(id_list: List[str]) -> Generator[GameData, None, None]:
 		yield GameData(data)
 
 
-def data_over_diamond() -> Generator[GameData, None, None]:
+def data_over_diamond(only_valid_monster=True) -> Generator[GameData, None, None]:
 	"""
 	Wrapper function to supply data from over Diamond tier.
 	:return:
 	"""
 	target = collection.find({"tier": {"$in": elo[-4:]}, "game_duration": {"$gte": 1200}})
 	for data in target:
-		yield GameData(data)
+		game_data = GameData(data)
+		if not only_valid_monster or (only_valid_monster and game_data.is_monster_log_valid()):
+			yield game_data
 
 
-def data_over_platinum() -> Generator[GameData, None, None]:
+def data_over_platinum(only_valid_monster=True) -> Generator[GameData, None, None]:
 	"""
 	Wrapper function to supply data from over Platinum tier.
 	:return:
 	"""
 	target = collection.find({"tier": {"$in": elo[4:]}, "game_duration": {"$gte": 1200}})
 	for data in target:
-		yield GameData(data)
+		game_data = GameData(data)
+		if not only_valid_monster or (only_valid_monster and game_data.is_monster_log_valid()):
+			yield game_data

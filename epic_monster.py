@@ -14,9 +14,6 @@ class EpicMonster(BaseParser):
 			self.elementDragonCountDict[dragon_type] = GameCount()
 
 	def parse(self, game_data: GameData):
-		if not game_data.is_monster_log_valid():
-			return
-
 		riftherald_count = [0, 0]
 		baron_count = [0, 0]
 		elder_dragon_count = [0, 0]
